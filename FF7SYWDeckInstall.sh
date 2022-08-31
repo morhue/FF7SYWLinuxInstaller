@@ -37,7 +37,7 @@ check_proton_installed () {
 			
 create_simlink_FF7Orig () {
 	if [[ ! -L "$HOME"/FF7_orig ]]; then
-        	ln -s "$STEAMAPPS/common/FINAL\ FANTASY\ VII/" "$HOME"/FF7_orig
+        	ln -s "$STEAMAPPS"/common/FINAL\ FANTASY\ VII/ "$HOME"/FF7_orig
 	fi
 	echo "simlink OK"
 }
