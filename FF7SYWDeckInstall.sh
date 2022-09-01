@@ -37,7 +37,7 @@ check_proton_installed () {
 			
 create_simlink_FF7Orig () {
 	if [[ ! -L "$HOME"/FF7_orig ]]; then
-        	ln -s "$STEAMAPPS"/common/FINAL\ FANTASY\ VII/ "$HOME"/FF7_orig
+		ln -s "$STEAMAPPS"/common/FINAL\ FANTASY\ VII/ "$HOME"/FF7_orig
 	fi
 	echo "simlink OK"
 }
@@ -108,6 +108,7 @@ install_exe_with_proton () {
 
 	file_name="$1"
 	compatdata_FF7SYW_inst="$2"
+
 	pushd "$HOME"/FF7SYWInstaller/
 	if [[ "${file_name}" == *.zip ]]; then
 		unzip "${file_name}"
@@ -172,7 +173,7 @@ download_prepare_install_FF7SYWexes () {
 		mkdir -p "$STEAMAPPS"/compatdata/install_SYW/
 	fi
 	for f in ${file2install}; do 
-		install_exe_with_proton "${f}" "$STEAMAPPS"/compatdata/install_SYW/.
+		install_exe_with_proton "${f}" "install_SYW"
 	done
 }
 
