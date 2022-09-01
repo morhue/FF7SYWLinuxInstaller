@@ -11,8 +11,9 @@ FF7SYWFR_PACKAGE_1="FF7SYW.V5.60.zip 1EnBQbvjKKnP2E-7B8o98KHiaJoi9_94a 'http://y
 FF7SYWFR_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj 'http://yatoshicom.free.fr/ff7sywv5.php?id=data2' e452937baed9e51f87848424c83f2663"
 
 PROTON_VERSION="7.0"
-FF7SYW_DIR="$HOME/FF7SYW/FF7SYWV5/"
-STEAMAPPS="$HOME/.local/share/Steam/steamapps/"
+STEAMAPPS="$HOME/.local/share/Steam/steamapps"
+FF7SYW_COMPATDATA="$STEAMAPPS/compatdata/FF7SYW"
+FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYW/"
 
 check_FF7_orig_installed () {
 	if [[ -f "$STEAMAPPS"/appmanifest_39140.acf ]] \
@@ -102,12 +103,10 @@ checksum_package_md5 () {
 }
 
 install_exe_with_proton () {
-# $1 is the MS_Windows executable or zip to install, $2 is the compatdata dir for the app previously created
+# $1 is the MS_Windows executable or zip to install
 	local file_name
-	local compatdata_FF7SYW_inst
 
 	file_name="$1"
-	compatdata_FF7SYW_inst="$2"
 
 	pushd "$HOME"/FF7SYWInstaller/
 	if [[ "${file_name}" == *.zip ]]; then
@@ -116,7 +115,7 @@ install_exe_with_proton () {
 		rm ./*.zip
 	fi
 	STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
-	STEAM_COMPAT_DATA_PATH="$STEAMAPPS"/compatdata/"$compatdata_FF7SYW_inst"/. \
+	STEAM_COMPAT_DATA_PATH="$FF7SYW_COMPATDATA"/. \
 	"$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$file_name"
 	popd
 }
@@ -167,13 +166,15 @@ download_prepare_install_FF7SYWexes () {
         file2install+=" ${file_name}"
 	sync
 	done
-	if [[ -d "$STEAMAPPS"/compatdata/install_SYW ]]; then
-		rm -rf "$STEAMAPPS"/compatdata/install_SYW/*
+	if [[ -d "$FF7SYW_COMPATDATA" ]]; then
+		rm -rf "$FF7SYW_COMPATDATA"/*
 	else
-		mkdir -p "$STEAMAPPS"/compatdata/install_SYW/
+		mkdir -p "$FF7SYW_COMPATDATA"
 	fi
+	create_dir_simlink_FF7SYW
+	echo -e "Lancement des installeurs FF7SYW. Merci d'installer les fichier dans $HOME/FF7SYW/"
 	for f in ${file2install}; do 
-		install_exe_with_proton "${f}" "install_SYW"
+		install_exe_with_proton "${f}"
 	done
 }
 
@@ -200,6 +201,5 @@ install_fonts () {
 check_FF7_orig_installed
 check_proton_installed
 create_simlink_FF7Orig
-create_dir_simlink_FF7SYW
 download_prepare_install_FF7SYWexes
 install_fonts
