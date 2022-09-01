@@ -13,7 +13,7 @@ FF7SYWFR_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj 'htt
 PROTON_VERSION="7.0"
 STEAMAPPS="$HOME/.local/share/Steam/steamapps"
 FF7SYW_COMPATDATA="$STEAMAPPS/compatdata/FF7SYW"
-FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYW/"
+FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Jeux/FF7SYW"
 
 check_FF7_orig_installed () {
 	if [[ -f "$STEAMAPPS"/appmanifest_39140.acf ]] \
