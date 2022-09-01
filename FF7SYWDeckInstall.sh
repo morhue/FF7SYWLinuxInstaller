@@ -110,7 +110,7 @@ install_exe_with_proton () {
 
 	pushd "$HOME"/FF7SYWInstaller/
 	if [[ "${file_name}" == *.zip ]]; then
-		unzip "${file_name}"
+		7z x "${file_name}"
 		file_name=$(unzip -Z1 "${file_name}" | grep .exe)
 		rm ./*.zip
 	fi
