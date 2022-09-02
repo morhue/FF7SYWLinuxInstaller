@@ -10,6 +10,7 @@
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
+set -x
 
 #Uncomment to force install if you think you have enough free space on disk.
 #NO_CHECK_FREE_SPACE=1
@@ -18,8 +19,8 @@ exec 1>FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
 FF7SYWFR_target_version="5.63"
 
 #Variables to describe packages/executables to download/intstall. $1 is file name, $2 is GoogleDrive-ID of file, $3 is a fallback url and $4 the md5sum.
-FF7SYWFR_PACKAGE_1="FF7SYW.V5.60.zip 1EnBQbvjKKnP2E-7B8o98KHiaJoi9_94a 'http://yatoshicom.free.fr/ff7sywv5.php?id=installeur3' 074f71f4d60f182b4a3c264dcf69c37c"
-FF7SYWFR_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj 'http://yatoshicom.free.fr/ff7sywv5.php?id=data2' e452937baed9e51f87848424c83f2663"
+FF7SYWFR_PACKAGE_1="FF7SYW.V5.60.zip 1EnBQbvjKKnP2E-7B8o98KHiaJoi9_94a http://yatoshicom.free.fr/ff7sywv5.php?id=installeur3 074f71f4d60f182b4a3c264dcf69c37c"
+FF7SYWFR_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj http://yatoshicom.free.fr/ff7sywv5.php?id=data2 e452937baed9e51f87848424c83f2663"
 
 FREE_DISK_SPACE_NEEDED=65000000000
 
@@ -34,12 +35,12 @@ FF7SYW_FONTS="$FF7SYW_COMPATDATA/pfx/drive_c/windows/Fonts"
 
 #Display message on stdout terminal with echo -e
 display_msg () {
-	echo -e "$@" >&3
+	command echo -e "$@" >&3
 }
 
 #Execute cmd and display stdout on stdout terminal
 display_cmd () {
-	"$@" >&3
+	command "$@" >&3
 }
 
 #Quiet pushd on stdout
@@ -189,9 +190,11 @@ checksum_package_md5 () {
 	if ! md5sum -c "$file_name".md5 ; then
 		rm "${file_name}"
                 display_msg "Le fichier téléchargé est corrompu ou pas complet\n"
+		rm -f "$file_name".md5
+		popd
 		return 1 
 	fi
-	rm "$file_name".md5
+	rm -f "$file_name".md5
 	popd
 }
 
@@ -212,7 +215,7 @@ install_exe_with_proton () {
 	display_msg "Lancement de l'éxécutable $file_name"
 	STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
 	STEAM_COMPAT_DATA_PATH="$FF7SYW_COMPATDATA"/. \
-	"$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$file_name" 1>&2
+	"$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$file_name"
 	popd
 }
 
