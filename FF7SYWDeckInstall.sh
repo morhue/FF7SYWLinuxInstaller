@@ -11,12 +11,17 @@ exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
 
+#Uncomment to force install if you think you have enough free space on disk.
+#NO_CHECK_FREE_SPACE=1
+
 #Target version of FF7SYW to install.
 FF7SYWFR_target_version="5.63"
 
 #Variables to describe packages/executables to download/intstall. $1 is file name, $2 is GoogleDrive-ID of file, $3 is a fallback url and $4 the md5sum.
 FF7SYWFR_PACKAGE_1="FF7SYW.V5.60.zip 1EnBQbvjKKnP2E-7B8o98KHiaJoi9_94a 'http://yatoshicom.free.fr/ff7sywv5.php?id=installeur3' 074f71f4d60f182b4a3c264dcf69c37c"
 FF7SYWFR_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj 'http://yatoshicom.free.fr/ff7sywv5.php?id=data2' e452937baed9e51f87848424c83f2663"
+
+FREE_DISK_SPACE_NEEDED=65000000000
 
 #Environment variables
 PROTON_VERSION="7.0"
@@ -72,6 +77,19 @@ check_proton_installed () {
 		exit 1
 	fi
 }        
+
+#Check free space on the disk
+#Uncomment NO_CHECK_FREE_SPACE on top of script to bypass.
+check_free_space () {
+        if [[ -z "$NO_CHECK_FREE_SPACE" ]]; then
+		free_space=$(($(stat -f --format="%a*%S" "$STEAMAPPS")))
+		if [[ ! "$free_space" -ge "$FREE_DISK_SPACE_NEEDED" ]]; then
+			display_msg "Espace disque insuffisant pour procéder à l'installation!"
+			display_msg "Vous pouvez forcer l'installation en dé-commentant (effacer le #) sur #NO_CHECK_FREE_SPACE=1 en haut du script\n" 
+			exit 1
+		fi
+	fi
+}
 
 #Create a symbolic link from the Home to FF7 legacy installed by Steam.
 #It help the user to target the directory ask by the installer to check if the install is legit.
@@ -282,6 +300,7 @@ clean_install () {
 }
 
 #Main
+check_free_space
 check_FF7_orig_installed
 check_proton_installed
 create_simlink_FF7Orig
