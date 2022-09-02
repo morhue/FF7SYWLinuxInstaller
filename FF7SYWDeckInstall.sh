@@ -23,7 +23,7 @@ PROTON_VERSION="7.0"
 STEAMAPPS="$HOME/.local/share/Steam/steamapps"
 FF7SYW_COMPATDATA="$STEAMAPPS/compatdata/FF7SYW"
 FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYWV5"
-
+FF7SYW_FONTS="$FF7SYW_COMPATDATA/pfx/drive_c/windows/Fonts"
 
 #Functions
 
@@ -263,25 +263,10 @@ download_prepare_install_FF7SYWexes () {
 	done
 }
 
-#Install fonts from FF7SYW launcher in user fonts directory.
+#Symlinks fonts from FF7SYW launcher in wine fonts directory.
 install_fonts () {
-	local check_fonts_present
-	check_fonts_present=$(fc-list | grep -i "Roboto")
-	display_msg "Installation des polices du Lanceur de FF7SYW"
-	if [[ ! "$check_fonts_present" == *"Roboto-Regular.ttf"* ]] \
-	&& [[ ! "$check_fonts_present" == *"Roboto-Black.ttf"* ]]; then
-		if [[ ! -d "$HOME"/.local/share/fonts ]]; then
-			mkdir -p "$HOME"/.local/share/fonts
-		fi
-		cp "$FF7SYW_DIR"/FF7_SYW/addfiles/polices/*.ttf "$HOME"/.local/share/fonts/.
-		fc-cache -f -v 1>&2 #Force fonts cache regen
-	fi
-	if [[ ! "$check_fonts_present" == *"Roboto-Regular.ttf"* ]] \
-	&& [[ ! "$check_fonts_present" == *"Roboto-Black.ttf"* ]]; then
-		display_msg "Les polices sont présentes ou ont été installées\n"
-	else
-		display_msg "Problème lors de l'install des polices"
-	fi
+	ln -s $FF7SYW_DIR/FF7_SYW/addfiles/polices/Roboto-Black.ttf $FF7SYW_FONTS
+	ln -s $FF7SYW_DIR/FF7_SYW/addfiles/polices/Roboto-Regular.ttf $FF7SYW_FONTS
 }
 
 #Clean non-needed files to gain space.
