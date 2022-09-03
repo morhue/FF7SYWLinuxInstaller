@@ -342,6 +342,27 @@ EOF
 	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW.sh
 }
 
+#Copy a file to configure button for the configurator of FF7SYW to use right trackpad for all users
+configure_configurator_button () {
+	local users_id
+	local id
+	display_msg "Copie la configuration du controlleur pour le configurateur"
+	users_id=$(ls "$STEAMAPPS"/common/Steam\ Controller\ Configs/)
+	for id in ${users_id} ; do
+		mkdir -p "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configuratorsh
+		cp controller_neptune.vdf "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configuratorsh/.
+	done
+}
+
+#Restart Steam to take into account modifications
+steam_restart () {
+	display_msg "Redémarrage de Steam pour prendre en compte l'installation et les modifications"
+	pkill steam
+	sleep 10
+	steam&
+	sleep 10
+}
+
 #Clean non-needed files to gain space.
 clean_install () {
 	unlink "$HOME"/FF7_orig
@@ -356,4 +377,6 @@ create_simlink_FF7Orig
 download_prepare_install_FF7SYWexes
 install_fonts
 create_launchers
+configure_configurator_button
+steam_restart
 clean_install
