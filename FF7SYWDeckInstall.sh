@@ -31,6 +31,7 @@ FF7SYW_COMPATDATA="$STEAMAPPS/compatdata/FF7SYW"
 FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYWV5"
 FF7SYW_FONTS="$FF7SYW_COMPATDATA/pfx/drive_c/windows/Fonts"
 
+
 #Functions
 
 #Display message on stdout terminal with echo -e
@@ -74,10 +75,28 @@ check_proton_installed () {
 	&& [[ -f "$STEAMAPPS"/common/Proton\ ${PROTON_VERSION}/proton ]] ; then
 		display_msg "Proton ${PROTON_VERSION} est bien installé.\n"
 	else
-		display_msg "Proton n'est pas installé. Merci d'executer FF7 version Steam au moins une fois avant de lancer cet installeur\n"
+		display_msg "Proton n'est pas installé. Merci d'éxecuter FF7 version Steam au moins une fois avant de lancer cet installeur\n"
 		exit 1
 	fi
 }        
+
+#Display a message when launching the script for the user
+display_header () {
+	display_msg "\nFF7SYWLinuxInstaller pour SteamDeck\n"
+	display_msg "Ce script va installer Final Fantasy VII Satsuki Yatoshi sur votre SteamDeck"
+	display_msg "La version qui sera installée sera la $FF7SYWFR_target_version\n"
+	display_msg "Merci de brancher votre SteamDeck sur une alimentation car elle va prendre du temps."
+	display_msg "Veuillez noter que ce pack occupe beaucoup plus d'espace disque que le jeu d'origine sorti en 1997\n"
+	display_msg "Ce script va:"
+	display_msg "-controler que votre système a tout les prérequis"
+	display_msg "-télécharger les fichiers nécéssaires à l'installation du pack"
+	display_msg "(sauf si les fichiers sont déjà présents dans le repertoire de Téléchargement)"
+	display_msg "-installer les fichiers nécéssaires sur votre système"
+	display_msg "(!! Merci de suivre les instructions données sur le Terminal !!)"
+	display_msg "-ajouter le configurateur et le lanceur du pack dans Steam"
+	display_msg "-parametrer Steam pour utiliser le Trackpad droit de votre SteamDeck sur le configurateur\n"
+	sleep 60
+}
 
 #Check free space on the disk
 #Uncomment NO_CHECK_FREE_SPACE on top of script to bypass.
@@ -276,9 +295,17 @@ download_prepare_install_FF7SYWexes () {
 	create_dir_simlink_FF7SYW
 	display_msg "Lancement des installeurs FF7SYW.\n\n"
 	display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	display_msg "IMPORTANT: Merci de choisir le repertoire $HOME/FF7SYW/ dans l'installateur graphique!"
+	display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	display_msg "L'installateur de FF7SYW pack va se lancer sur le Bureau."
+	display_msg "Sur ces écrans, vous allez devoir faire certains paramétrages pour que tout se passe bien"
+	display_msg "durant l'installation et pour les lancements du jeu.\n"
+	display_msg "-Sur l'écran de vérification de l'installation de Final Fantasy VII,"
+	display_msg "veuillez sélectionner le répertoire $HOME/FF7_orig pour passer cette étape\n"
+	display_msg "-Lors de la sélection du repertoire d'installation,"
+	display_msg "merci de choisir le repertoire $HOME/FF7SYW/ dans l'installateur graphique!\n"
+        display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
-	sleep 10
+	sleep 60
 	for f in ${file2install}; do 
 		install_exe_with_proton "${f}"
 	done
@@ -303,6 +330,7 @@ clean_install () {
 }
 
 #Main
+display_header
 check_free_space
 check_FF7_orig_installed
 check_proton_installed
