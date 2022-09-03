@@ -324,6 +324,24 @@ install_fonts () {
 	fi
 }
 
+#Create sh files to launch configurator and the game accross Steam
+create_launchers () {
+	display_msg "Creations des wrappers des éxécutables"
+	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW_configurator.sh
+STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
+STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
+$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW_Configuration.exe
+EOF
+
+	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW.sh
+STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
+STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
+$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW.exe
+EOF
+	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW_configurator.sh
+	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW.sh
+}
+
 #Clean non-needed files to gain space.
 clean_install () {
 	unlink "$HOME"/FF7_orig
@@ -337,4 +355,5 @@ check_proton_installed
 create_simlink_FF7Orig
 download_prepare_install_FF7SYWexes
 install_fonts
+create_launchers
 clean_install
