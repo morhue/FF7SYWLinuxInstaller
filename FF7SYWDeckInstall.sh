@@ -314,8 +314,8 @@ download_prepare_install_FF7SYWexes () {
 #Symlinks fonts from FF7SYW launcher in wine fonts directory.
 install_fonts () {
 	display_msg "Installation des polices du Lanceur de FF7SYW"
-	ln -s "$FF7SYW_DIR"/FF7_SYW/addfiles/polices/Roboto-Black.ttf "$FF7SYW_FONTS"
-	ln -s "$FF7SYW_DIR"/FF7_SYW/addfiles/polices/Roboto-Regular.ttf "$FF7SYW_FONTS"
+	ln -s "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/addfiles/polices/Roboto-Black.ttf "$FF7SYW_FONTS"
+	ln -s "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/addfiles/polices/Roboto-Regular.ttf "$FF7SYW_FONTS"
 	if [[ -f "$FF7SYW_FONTS/Roboto-Regular.ttf" ]] \
 	&& [[ -f "$FF7SYW_FONTS/Roboto-Black.ttf" ]]; then
 		display_msg "Les polices sont installées\n"
