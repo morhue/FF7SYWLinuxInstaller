@@ -226,12 +226,12 @@ install_exe_with_proton () {
 
 	pushd "$HOME"/FF7SYWInstaller/
 	if [[ "${file_name}" == *.zip ]]; then
-		display_msg "Décompression de $file_name"
+		display_msg "Décompression de $file_name :"
 		display_cmd 7z x "${file_name}"
 		file_name=$(unzip -Z1 "${file_name}" | grep .exe)
 		rm ./*.zip
 	fi
-	display_msg "Lancement de l'éxécutable $file_name"
+	display_msg "\nLancement de l'éxécutable $file_name"
 	STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
 	STEAM_COMPAT_DATA_PATH="$FF7SYW_COMPATDATA"/. \
 	"$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$file_name"
@@ -299,10 +299,10 @@ download_prepare_install_FF7SYWexes () {
 	display_msg "L'installateur de FF7SYW pack va se lancer sur le Bureau."
 	display_msg "Sur ces écrans, vous allez devoir faire certains paramétrages pour que tout se passe bien"
 	display_msg "durant l'installation et pour les lancements du jeu.\n"
-	display_msg "-Sur l'écran de vérification de l'installation de Final Fantasy VII,"
-	display_msg "veuillez sélectionner le répertoire $HOME/FF7_orig pour passer cette étape\n"
 	display_msg "-Lors de la sélection du repertoire d'installation,"
 	display_msg "merci de choisir le repertoire $HOME/FF7SYW/ dans l'installateur graphique!\n"
+        display_msg "-Sur l'écran de vérification de l'installation de Final Fantasy VII,"
+        display_msg "veuillez sélectionner le répertoire $HOME/FF7_orig pour passer cette étape\n"
         display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
 	sleep 60
