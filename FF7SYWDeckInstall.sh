@@ -327,19 +327,33 @@ install_fonts () {
 #Create sh files to launch configurator and the game accross Steam
 create_launchers () {
 	display_msg "Creations des wrappers des éxécutables"
-	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW_configurator.sh
+	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW_configurator
+#! /bin/bash
 STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
 STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
 $STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW_Configuration.exe
 EOF
 
-	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW.sh
+	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW
+#! /bin/bash
 STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
 STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
 $STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW.exe
 EOF
-	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW_configurator.sh
-	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW.sh
+	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW_configurator
+	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW
+}
+
+#Declare launchers in Steam as non-steam-games
+#$1 is absolute path of the file
+add_to_steam () {
+	display_msg "Ajout du configurateur et du lanceur dans Steam"
+	steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW_configurator
+	sleep 10
+	echo -e "\n"
+	steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW
+	sleep 10
+	echo -e "\n"
 }
 
 #Copy a file to configure button for the configurator of FF7SYW to use right trackpad for all users
@@ -349,8 +363,8 @@ configure_configurator_button () {
 	display_msg "Copie la configuration du controlleur pour le configurateur"
 	users_id=$(ls "$STEAMAPPS"/common/Steam\ Controller\ Configs/)
 	for id in ${users_id} ; do
-		mkdir -p "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configuratorsh
-		cp controller_neptune.vdf "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configuratorsh/.
+		mkdir -p "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator
+		cp controller_neptune.vdf "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator/.
 	done
 }
 
@@ -377,6 +391,7 @@ create_simlink_FF7Orig
 download_prepare_install_FF7SYWexes
 install_fonts
 create_launchers
+add_to_steam
 configure_configurator_button
 steam_restart
 clean_install
