@@ -1,4 +1,7 @@
 # FF7SYWLinuxInstaller
+Version: v0.1
+
+
 
 Ce script va vous permettre d'installer Final Fantasy VII Satsuki Yatoshi's Pack FR (version Française) sur un SteamDeck.  
 
