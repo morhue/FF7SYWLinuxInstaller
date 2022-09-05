@@ -20,6 +20,7 @@ Pour lancer l'installation sur votre SteamDeck:
 
 
 Problèmes connus:  
+	-Crash lors du lancement du jeu ou après le configurateur après sauvegarde -> Solution: forcer Proton V7.0-4 dans Steam sur les lanceurs.  
 	-le téléchargement ne s'affiche pas sur le Terminal: https://github.com/morhue/FF7SYWLinuxInstaller/issues/2  
 	-les logs de téléchargement occupent trop d'espace sur : https://github.com/morhue/FF7SYWLinuxInstaller/issues/3  
 
@@ -40,6 +41,7 @@ Bon jeu à vous !
 
 
 Auteur: Morhue (morhue@gmail.com)  
-Test/débug/améliorations : Joan31/Samba  
+Test/débug/améliorations : Joan31/Samba   
+Url Forum: https://ff7.fr/forum/index.php?page=post&ids=475262  
 Url du pack FF7SYW: https://ff7.fr/forum/index.php?page=post&ids=462605  
 Auteur du pack FF7SYW : Satsuki Yatoshi
