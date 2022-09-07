@@ -67,6 +67,17 @@ popd () {
 	command popd > /dev/null
 }
 
+#Check if installation is done and which version
+#Return 1 if FF7SYW is not installed, set CURRENT_VERSION to version.vrs if already installed
+check_ff7syw_install_version () {
+	if [[ -f "$FF7SYW_DIR"/FF7SYWV5/version.vrs ]]; then
+		CURRENT_VERSION=$(cat "$FF7SYW_DIR"/FF7SYWV5/version.vrs)
+	else
+		CURRENT_VERSION=""
+		return 1
+	fi
+}
+
 #Check if FF7 original is installed on Steam
 check_FF7_orig_installed () {
         display_msg "\nVérification si FF7 original de Steam est installé:"
@@ -410,3 +421,9 @@ if [[ "$SYSTEM_TYPE" == "SteamDeck" ]]; then
 fi
 steam_restart
 clean_install
+if ! check_ff7syw_install_version ; then
+	display_msg "FF7SYW n'est pas installé"
+else
+	display_msg "FF7SYW" "$CURRENT_VERSION" "est installé sur votre système"
+fi
+
