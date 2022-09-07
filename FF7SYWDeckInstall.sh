@@ -38,6 +38,13 @@ FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYWV5"
 FF7SYW_FONTS="$FF7SYW_COMPATDATA/pfx/drive_c/windows/Fonts"
 
 
+#System type check
+if [[ "$(cat /etc/issue)" = "SteamOS"* ]] && [[ "$USER" == deck ]]; then
+	SYSTEM_TYPE="SteamDeck"
+else
+	SYSTEM_TYPE="Linux"
+fi
+
 #Functions
 
 #Display message on stdout terminal with echo -e
@@ -398,6 +405,8 @@ download_prepare_install_FF7SYWexes
 install_fonts
 create_launchers
 add_to_steam
-configure_configurator_button
+if [[ "$SYSTEM_TYPE" == "SteamDeck" ]]; then
+	configure_configurator_button
+fi
 steam_restart
 clean_install
