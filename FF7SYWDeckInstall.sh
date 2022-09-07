@@ -7,13 +7,19 @@
 
 # shellcheck disable=SC2164
 
+#USER Manual settings
+#Uncomment to force install if you think you have enough free space on disk.
+#NO_CHECK_FREE_SPACE=1
+
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
 set -x
 
-#Uncomment to force install if you think you have enough free space on disk.
-#NO_CHECK_FREE_SPACE=1
+#Check if run on a terminal with display enabled.
+if [[ -z "$DISPLAY" ]] || [[ ! -t 0 ]]; then
+	exit 1
+fi
 
 #Target version of FF7SYW to install.
 FF7SYWFR_target_version="5.63"
