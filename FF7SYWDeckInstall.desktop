@@ -2,7 +2,7 @@
 [Desktop Entry]
 Name=Install FF7SYW
 Comment=Install Final Fantasy 7 SYW
-Exec=konsole -e "bash -c 'chmod +x FF7SYWDeckInstall.sh;./FF7SYWDeckInstall.sh;$SHELL'"
+Exec=konsole -e "bash -c 'chmod +x $(dirname %k)/FF7SYWDeckInstall.sh && $(dirname %k)/FF7SYWDeckInstall.sh;$SHELL'"
 Icon=steam_icon_39140
 Terminal=false
 Type=Application
