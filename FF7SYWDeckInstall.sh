@@ -245,20 +245,27 @@ checksum_package_md5 () {
 #$1 is the MS_Windows executable or zip to install
 install_exe_with_proton () {
 	local file_name
+	local is_ziped
 
 	file_name="$1"
 
 	pushd "$HOME"/FF7SYWInstaller/
 	if [[ "${file_name}" == *.zip ]]; then
+		is_ziped=1
+		mkdir unziped
 		display_msg "Décompression de $file_name :"
-		display_cmd 7z x "${file_name}"
+		display_cmd 7z x "${file_name}" -ounziped/
 		file_name=$(unzip -Z1 "${file_name}" | grep .exe)
-		rm ./*.zip
+		pushd unziped
 	fi
 	display_msg "\nLancement de l'éxécutable $file_name"
 	STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
 	STEAM_COMPAT_DATA_PATH="$FF7SYW_COMPATDATA"/. \
 	"$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$file_name"
+	if [[ -n "$is_ziped" ]]; then
+		popd
+		rm -rf unziped
+	fi
 	popd
 }
 
