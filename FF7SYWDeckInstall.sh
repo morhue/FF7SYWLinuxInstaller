@@ -395,7 +395,7 @@ configure_configurator_button () {
 	users_id=$(ls "$STEAMAPPS"/common/Steam\ Controller\ Configs/)
 	for id in ${users_id} ; do
 		mkdir -p "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator
-		cp controller_neptune.vdf "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator/.
+		cp ./resources/controller_neptune.vdf "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator/.
 	done
 }
 
