@@ -186,7 +186,7 @@ download_on_gdrive () {
 	local file_name
 	local file_g_id
 	local download_path
-	local drive_url
+	local data_html
 
 	file_name="$1"
 	file_g_id="$2"
@@ -194,8 +194,8 @@ download_on_gdrive () {
 
 	display_msg "Téléchargement de $file_name dans $download_path à partir de GoogleDrive:"
 	pushd "$download_path"
-	drive_url="https://docs.google.com/uc?export=download&id=${file_g_id}"
-	display_cmd wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate "$drive_url" -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=$file_g_id" -O "$file_name" && rm -rf /tmp/cookies.txt
+	data_html=$(curl -c /tmp/cookie.txt -s -L "https://drive.google.com/uc?export=download&id=${file_g_id}")
+	display_cmd curl -Lb /tmp/cookie.txt "https://drive.google.com/uc?export=download&$(echo "${data_html}"|grep -Po '(confirm=[a-zA-Z0-9\-_]+)')&id=${file_g_id}" -o "${file_name}" && rm -rf /tmp/cookies.txt
 	popd
 }
 
@@ -212,7 +212,7 @@ download_fallback () {
 
 	display_msg "Téléchargement de $file_name dans $download_path à partir d'un serveur de substitution:"
 	pushd "$download_path"
-	display_cmd wget --no-check-certificate "$fallback_url" -O "$file_name"
+	display_cmd curl -L "$fallback_url" -o "$file_name"
 	popd
 }
 
