@@ -334,6 +334,10 @@ download_prepare_install_FF7SYWexes () {
 	display_msg "merci de choisir le repertoire $HOME/FF7SYW/ dans l'installateur graphique!\n"
         display_msg "-Sur l'écran de vérification de l'installation de Final Fantasy VII,"
         display_msg "veuillez sélectionner le répertoire $HOME/FF7_orig pour passer cette étape\n"
+#Bug 7
+	display_msg "Durant l'installation, il peux se produire une erreur lors de la copie de Complètes.txt ou"
+	display_msg "Conseillées.txt . Veuillez cliquer sur ignorer"
+#!Bug7
         display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
 	sleep 60
@@ -454,6 +458,27 @@ uninstall_FF7SYW_extra () {
         done
 }
 
+#Fix issues which may occur on some configuration
+deploy_WA () {
+echo -e "Deploy WA"
+	#Sephix issue/bug7: Files are missing in dir aa due to characters with accent
+	#https://github.com/morhue/FF7SYWLinuxInstaller/issues/7
+	local files_sephix
+	if [[ -d "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/mods/SYWsp/aa ]]; then
+		for files_sephix in "Complètes.txt" "Conseillées.txt"; do
+			if [[ ! -f "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/mods/SYWsp/aa/"$files_sephix" ]]; then
+				if [[ ! -f /tmp/$files_sephix ]]; then
+					unzip -o ./resources/WA/aa/bug7.zip -d /tmp/.
+				fi
+				cp /tmp/"$files_sephix" "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/mods/SYWsp/aa/.
+				rm -f /tmp/"$files_sephix"
+			sync
+			fi
+		done
+	fi
+echo -e "WA done"
+}
+
 #Main
 display_header
 check_free_space
@@ -467,6 +492,7 @@ add_to_steam
 if [[ "$SYSTEM_TYPE" == "SteamDeck" ]]; then
 	configure_configurator_button
 fi
+deploy_WA
 steam_restart
 clean_install
 if ! check_ff7syw_install_version ; then
@@ -474,4 +500,3 @@ if ! check_ff7syw_install_version ; then
 else
 	display_msg "FF7SYW" "$CURRENT_VERSION" "est installé sur votre système"
 fi
-
