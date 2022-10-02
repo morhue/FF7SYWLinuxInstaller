@@ -413,6 +413,47 @@ clean_install () {
 	unlink "$HOME"/FF7_orig
 }
 
+#Remove FF7SYW directory in compatdata. Back_up save directory in the home user directory is exist.
+#Used when Upgrade to new version
+uninstall_FF7SYW () {
+	display_msg "Désinstallation de FF7SYW"
+	if [[ -d "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/save ]]; then
+		display_msg "Copie du repertoire de sauvegarde dans le repertoire utilisateur"
+		if [[ ! -d "$HOME"/FF7SYW_save ]]; then
+			mkdir "$HOME"/FF7SYW_save
+		fi
+		if [[ -d "$HOME"/FF7SYW_save/save ]]; then
+			mv "$HOME"/FF7SYW_save/save "$HOME"/FF7SYW_save/save_old_"$(date '+%Y-%m-%d-%H_%M_%S')"
+		fi
+		cp -rv "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/save "$HOME"/FF7SYW_save/.
+		if [[ ! -d "$HOME"/FF7SYW_save/save ]]; then
+			display_msg "La copie des sauvegarde a échouée. Abandon de la désinstallation!\n"
+			exit 1
+		fi
+		display_msg "Le repertoire de sauvegarde a été copié dans" "$HOME"/FF7SYW_save/
+	fi
+	rm -rf "$FF7SYW_COMPATDATA"
+	sync
+	if [[ ! -d "$FF7SYW_COMPATDATA" ]]; then
+		display_msg "Le repertoire de FF7SYW a bien été éffacé"
+	else
+		display_msg "Problème lors de la désinstallation de FF7SYW. Abandon!\n"
+		exit 1
+	fi
+}
+
+#Remove additionnal files for a total uninstall
+uninstall_FF7SYW_extra () {
+	local users_id
+        local id
+
+	display_msg "Désinstallation des fichiers supplémentaires"
+        users_id=$(ls "$STEAMAPPS"/common/Steam\ Controller\ Configs/)
+        for id in ${users_id} ; do
+                rm -rfv "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/{ff7syw_configurator,ff7syw}
+        done
+}
+
 #Main
 display_header
 check_free_space
