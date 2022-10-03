@@ -38,12 +38,20 @@ FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYWV5"
 FF7SYW_FONTS="$FF7SYW_COMPATDATA/pfx/drive_c/windows/Fonts"
 
 
-#System type check
+#System type check and configuration
+#System type
 if [[ "$(cat /etc/issue)" = "SteamOS"* ]] && [[ "$USER" == deck ]]; then
 	SYSTEM_TYPE="SteamDeck"
 else
 	SYSTEM_TYPE="Linux"
 fi
+#locale
+locale
+#KDE language
+if [[ -f "$HOME"/.config/plasma-localerc ]]; then
+	cat "$HOME"/.config/plasma-localerc
+fi
+
 
 #Functions
 
