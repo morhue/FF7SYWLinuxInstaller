@@ -22,15 +22,25 @@ if [[ -z "$DISPLAY" ]] || [[ ! -t 0 ]]; then
 fi
 
 #Target version of FF7SYW to install.
-FF7SYWFR_target_version="5.63"
+FF7SYW_target_version="5.63"
 
-#Variables to describe packages/executables to download/intstall. $1 is file name, $2 is GoogleDrive-ID of file, $3 is a fallback url and $4 the md5sum.
-FF7SYWFR_PACKAGE_1="FF7SYW.V5.60.zip 1EnBQbvjKKnP2E-7B8o98KHiaJoi9_94a http://yatoshicom.free.fr/ff7sywv5.php?id=installeur3 074f71f4d60f182b4a3c264dcf69c37c"
-FF7SYWFR_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj http://yatoshicom.free.fr/ff7sywv5.php?id=data2 e452937baed9e51f87848424c83f2663"
+#DEBUG
+language="VF"
+#language="VI"
+
+#Variables to describe packages/executables to download/intstall. $1 is file name, $2 is the md5sum, $3 is a GoogleDrive-ID (or URL if VI) and $4 is a fallback URL (if VF).
+if [[ "$language" == VF ]]; then
+	FF7SYW_PACKAGE_1="FF7SYW.V5.60.zip 074f71f4d60f182b4a3c264dcf69c37c 1EnBQbvjKKnP2E-7B8o98KHiaJoi9_94a http://yatoshicom.free.fr/ff7sywv5.php?id=installeur3"
+	FF7SYW_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe e452937baed9e51f87848424c83f2663 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj http://yatoshicom.free.fr/ff7sywv5.php?id=data2"
+else
+	FF7SYW_PACKAGE_1="TSUNAMODS.FF7.SYW.V5.60.installer.zip A654E380D211E5FED9980D1C5C9FD015 https://syw.7thheaven.rocks/steam/TSUNAMODS.FF7.SYW.V5.60.installer.zip"
+	FF7SYW_PACKAGE_2="TSUNAMODS.FF7.SYW.V5.Update.5.63.exe 9CC65D3D48D80E48C6FBAC64E41A7A28 https://syw.7thheaven.rocks/steam/TSUNAMODS.FF7.SYW.V5.Update.5.63.exe"
+fi
 
 FREE_DISK_SPACE_NEEDED=65000000000
 
 #Environment variables
+SYW_API='http://yatoshicom.free.fr/ff7sywv5.php?id='
 PROTON_VERSION="7.0"
 STEAMAPPS="$HOME/.local/share/Steam/steamapps"
 FF7SYW_COMPATDATA="$STEAMAPPS/compatdata/FF7SYW"
@@ -75,6 +85,14 @@ popd () {
 	command popd > /dev/null
 }
 
+#Check if the system is connected to Internet
+check_connectivity () {
+if ! ping -c 1 8.8.8.8 ; then
+	display_msg "Non connecté à Internet\n"
+	return 1
+fi
+}
+
 #Check if installation is done and which version
 #Return 1 if FF7SYW is not installed, set CURRENT_VERSION to version.vrs if already installed
 check_ff7syw_install_version () {
@@ -84,6 +102,64 @@ check_ff7syw_install_version () {
 		CURRENT_VERSION=""
 		return 1
 	fi
+}
+
+#Retrieve information about packages on Satsuki's server
+#Build FF7SYW_target_version and FF7SYW_PACKAGE_*
+#FF7SYW_PACKAGE_* describe packages/executables to download/install. $1 is file name, $2 is the md5sum, $3 is a GoogleDrive-ID (or URL if VI) and $4 is a fallback URL (if VF).
+get_latest_FF7SYW_version_info () {
+local base_version
+local base_checksum
+local base_url
+local base_url_fall
+local base_file_name
+local update_version
+local update_checksum
+local update_url
+local update_url_fall
+local update_file_name
+
+if ! check_connectivity; then
+	display_msg "Pas de connections, tentative d'utilisation des packages en local s'ils existent\n"
+	return 1
+fi
+base_version=$(eval curl -s "${SYW_API}"installeur"${language}"version)
+update_version=$(eval curl -s "${SYW_API}"maj"${language}"version)
+base_checksum=$(eval curl -s "${SYW_API}"installeur"${language}"checksum)
+base_url=$(eval curl -s -I "${SYW_API}"installeur"${language}" | grep 'Location:' | sed 's/Location: //g')
+if [[ "$base_url" = *google* ]]; then
+	base_url=$(echo "${base_url}" | cut -d '/' -f 6)
+fi
+if [[ "${language}" == VF ]]; then
+	base_url_fall=$(eval curl -s -I "${SYW_API}"installeur"${language}"2 | grep 'Location:' | sed 's/Location: //g')
+	base_file_name=${base_url_fall##*/}
+# shellcheck disable=SC2034
+	FF7SYW_PACKAGE_1="${base_file_name} ${base_checksum} ${base_url} ${base_url_fall}"
+else
+	base_file_name=${base_url##*/}
+# shellcheck disable=SC2034
+	FF7SYW_PACKAGE_1="${base_file_name} ${base_checksum} ${base_url}"
+fi
+if [[ "${base_version##*.}" -lt "${update_version##*.}" ]]; then
+	FF7SYW_target_version="${update_version}"
+	update_checksum=$(eval curl -s "${SYW_API}"maj"${language}"checksum)
+	update_url=$(eval curl -s -I "${SYW_API}"data"${language}" | grep 'Location:' | sed 's/Location: //g')
+	if [[ "$update_url" = *google* ]]; then
+		update_url=$(echo "${update_url}" | cut -d '/' -f 6)
+	fi
+	if [[ "${language}" == VF ]]; then
+		update_url_fall=$(eval curl -s -I "${SYW_API}"data"${language}"2 | grep 'Location:' | sed 's/Location: //g')
+		update_file_name=${update_url_fall##*/}
+# shellcheck disable=SC2034
+		FF7SYW_PACKAGE_2="${update_file_name} ${update_checksum} ${update_url} ${update_url_fall}"
+	else
+		update_file_name=${update_url##*/}
+# shellcheck disable=SC2034
+		FF7SYW_PACKAGE_2="${update_file_name} ${update_checksum} ${update_url}"
+	fi
+else
+	FF7SYW_target_version="${base_version}"
+fi
 }
 
 #Check if FF7 original is installed on Steam
@@ -116,7 +192,7 @@ check_proton_installed () {
 display_header () {
 	display_msg "\nFF7SYWLinuxInstaller pour SteamDeck\n"
 	display_msg "Ce script va installer Final Fantasy VII Satsuki Yatoshi sur votre SteamDeck"
-	display_msg "La version qui sera installée sera la $FF7SYWFR_target_version\n"
+	display_msg "La version qui sera installée sera la $FF7SYW_target_version\n"
 	display_msg "Merci de brancher votre SteamDeck sur une alimentation car elle va prendre du temps."
 	display_msg "Veuillez noter que ce pack occupe beaucoup plus d'espace disque que le jeu d'origine sorti en 1997\n"
 	display_msg "Ce script va:"
@@ -207,20 +283,20 @@ download_on_gdrive () {
 	popd
 }
 
-#Download installer(s) on other server. Used there's a faillure with GoogleDrive.
+#Download installer(s) on standard server. Used there's a faillure with GoogleDrive or when VI.
 #$1 is the file name, $2 is the URL of the file, $3 is the system directory to store the file.
-download_fallback () {
+download_file () {
 	local file_name
-	local fallback_url
+	local url
 	local download_path
 
 	file_name="$1"
-	fallback_url="$2"
+	url="$2"
 	download_path="$3"
 
 	display_msg "Téléchargement de $file_name dans $download_path à partir d'un serveur de substitution:"
 	pushd "$download_path"
-	display_cmd curl -L "$fallback_url" -o "$file_name"
+	display_cmd curl -L "${url}" -o "${file_name}"
 	popd
 }
 
@@ -283,48 +359,59 @@ download_prepare_install_FF7SYWexes () {
 	local var_package_nb
 	local package_name
 	local file_name
-	local file_g_id
+	local url_or_gid
 	local fallback_url
 	local checksum_md5
 	local file2install
 
 	display_msg "Préparation de l'environnement, téléchargement (si besoin) et installation des packages"
 	mkdir -p "$HOME"/FF7SYWInstaller/
-	total_var_packages="$( (set -o posix; set ) | grep -c FF7SYWFR_PACKAGE_)"
+	total_var_packages="$( (set -o posix; set ) | grep -c FF7SYW_PACKAGE_)"
 	for var_package_nb in $(seq 1 "$total_var_packages"); do
-		package_name="FF7SYWFR_PACKAGE_$var_package_nb"
+		package_name="FF7SYW_PACKAGE_$var_package_nb"
+		echo "FF7SYW_PACKAGE_$var_package_nb" contains "${!package_name}"
 		file_name=$(echo "${!package_name}"| cut -d " " -f 1)
-		file_g_id=$(echo "${!package_name}"| cut -d " " -f 2)
-		fallback_url=$(echo "${!package_name}"| cut -d " " -f 3)
-		checksum_md5=$(echo "${!package_name}"| cut -d " " -f 4)
+		checksum_md5=$(echo "${!package_name}"| cut -d " " -f 2)
+		url_or_gid=$(echo "${!package_name}"| cut -d " " -f 3)
+		if [[ "$language" == VF ]]; then
+			fallback_url=$(echo "${!package_name}"| cut -d " " -f 4)
+		fi
 		if [[ -f "$(xdg-user-dir DOWNLOAD)/${file_name}" ]]; then
 			display_msg "$file_name est déjà présent dans le dossier des Téléchargements"
 			display_msg "Déplacement dans $HOME/FF7SYWInstaller\n"
 			mv "$(xdg-user-dir DOWNLOAD)/${file_name}" "$HOME/FF7SYWInstaller/."
 		fi
 		if [[ -f "$HOME/FF7SYWInstaller/${file_name}" ]]; then
-			display_msg "$file_name est déjà présent dans le dossier FF7SYWInstaller\n"
+			display_msg "$file_name est présent dans le dossier FF7SYWInstaller\n"
 			checksum_package_md5 "$file_name" "$checksum_md5" "$HOME/FF7SYWInstaller/"
 		fi
 		if [[ ! -f "$HOME/FF7SYWInstaller/${file_name}" ]]; then
 			display_msg "Téléchargement de $file_name"
-                        if ! ping -c 1 8.8.8.8 ; then 
-				display_msg "Non connecté à Internet\n"
+                        if ! check_connectivity; then
+				display_msg "Abandon\n"
 				exit 1
 			fi
-			download_on_gdrive "${file_name}" "${file_g_id}" "$HOME"/FF7SYWInstaller/
-			if ! checksum_package_md5 "$file_name" "$checksum_md5" "$HOME"/FF7SYWInstaller/ ; then
-				display_msg "Problème lors du téléchargement à partir de GoogleDrive."
-				display_msg "Lancement du téléchargement sur un serveur de substitution"
-				download_fallback "${file_name}" "${fallback_url}" "$HOME"/FF7SYWInstaller/
+			if [[ "$language" == VF ]]; then
+				download_on_gdrive "${file_name}" "${url_or_gid}" "$HOME"/FF7SYWInstaller/
+				if ! checksum_package_md5 "$file_name" "$checksum_md5" "$HOME"/FF7SYWInstaller/ ; then
+					display_msg "Problème lors du téléchargement à partir de GoogleDrive."
+					display_msg "Lancement du téléchargement sur un serveur de substitution"
+					download_file "${file_name}" "${fallback_url}" "$HOME"/FF7SYWInstaller/
+					if ! checksum_package_md5 "$file_name" "$checksum_md5" "$HOME"/FF7SYWInstaller/ ; then
+						display_msg "Impossible de télécharger l'installeur ${file_name}. Merci de le télécharger avec Firefox ou Chrome\n"
+						exit 1
+					fi
+				fi
+			else
+				download_file "${file_name}" "${url_or_gid}" "$HOME"/FF7SYWInstaller/
 				if ! checksum_package_md5 "$file_name" "$checksum_md5" "$HOME"/FF7SYWInstaller/ ; then
 					display_msg "Impossible de télécharger l'installeur ${file_name}. Merci de le télécharger avec Firefox ou Chrome\n"
 					exit 1
 				fi
 			fi
 		fi
-        file2install+=" ${file_name}"
-	sync
+		file2install+=" ${file_name}"
+		sync
 	done
 	if [[ -d "$FF7SYW_COMPATDATA" ]]; then
 		rm -rf "${FF7SYW_COMPATDATA:?}"/*
