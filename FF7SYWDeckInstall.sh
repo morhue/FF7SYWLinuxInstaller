@@ -519,6 +519,7 @@ uninstall_FF7SYW () {
 		fi
 		display_msg "Le repertoire de sauvegarde a été copié dans" "$HOME"/FF7SYW_save/
 	fi
+	unlink "$HOME"/FF7SYW
 	rm -rf "$FF7SYW_COMPATDATA"
 	sync
 	if [[ ! -d "$FF7SYW_COMPATDATA" ]]; then
