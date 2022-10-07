@@ -21,21 +21,9 @@ if [[ -z "$DISPLAY" ]] || [[ ! -t 0 ]]; then
 	exit 1
 fi
 
-#Target version of FF7SYW to install.
-FF7SYW_target_version="5.63"
-
 #DEBUG
 language="VF"
 #language="VI"
-
-#Variables to describe packages/executables to download/intstall. $1 is file name, $2 is the md5sum, $3 is a GoogleDrive-ID (or URL if VI) and $4 is a fallback URL (if VF).
-if [[ "$language" == VF ]]; then
-	FF7SYW_PACKAGE_1="FF7SYW.V5.60.zip 074f71f4d60f182b4a3c264dcf69c37c 1EnBQbvjKKnP2E-7B8o98KHiaJoi9_94a http://yatoshicom.free.fr/ff7sywv5.php?id=installeur3"
-	FF7SYW_PACKAGE_2="FF7SYWV5.MAJ.5.63.exe e452937baed9e51f87848424c83f2663 1i5n1nPrt5_83u9c1pyMIYr7ErbN84yyj http://yatoshicom.free.fr/ff7sywv5.php?id=data2"
-else
-	FF7SYW_PACKAGE_1="TSUNAMODS.FF7.SYW.V5.60.installer.zip A654E380D211E5FED9980D1C5C9FD015 https://syw.7thheaven.rocks/steam/TSUNAMODS.FF7.SYW.V5.60.installer.zip"
-	FF7SYW_PACKAGE_2="TSUNAMODS.FF7.SYW.V5.Update.5.63.exe 9CC65D3D48D80E48C6FBAC64E41A7A28 https://syw.7thheaven.rocks/steam/TSUNAMODS.FF7.SYW.V5.Update.5.63.exe"
-fi
 
 FREE_DISK_SPACE_NEEDED=65000000000
 
@@ -126,12 +114,12 @@ fi
 base_version=$(eval curl -s "${SYW_API}"installeur"${language}"version)
 update_version=$(eval curl -s "${SYW_API}"maj"${language}"version)
 base_checksum=$(eval curl -s "${SYW_API}"installeur"${language}"checksum)
-base_url=$(eval curl -s -I "${SYW_API}"installeur"${language}" | grep 'Location:' | sed 's/Location: //g')
+base_url=$(eval curl -s -I "${SYW_API}"installeur"${language}" | grep 'Location:' | sed 's/Location: //g' | sed 's/\r//g')
 if [[ "$base_url" = *google* ]]; then
 	base_url=$(echo "${base_url}" | cut -d '/' -f 6)
 fi
 if [[ "${language}" == VF ]]; then
-	base_url_fall=$(eval curl -s -I "${SYW_API}"installeur"${language}"2 | grep 'Location:' | sed 's/Location: //g')
+	base_url_fall=$(eval curl -s -I "${SYW_API}"installeur"${language}"3 | grep 'Location:' | sed 's/Location: //g' | sed 's/\r//g')
 	base_file_name=${base_url_fall##*/}
 # shellcheck disable=SC2034
 	FF7SYW_PACKAGE_1="${base_file_name} ${base_checksum} ${base_url} ${base_url_fall}"
@@ -143,12 +131,12 @@ fi
 if [[ "${base_version##*.}" -lt "${update_version##*.}" ]]; then
 	FF7SYW_target_version="${update_version}"
 	update_checksum=$(eval curl -s "${SYW_API}"maj"${language}"checksum)
-	update_url=$(eval curl -s -I "${SYW_API}"data"${language}" | grep 'Location:' | sed 's/Location: //g')
+	update_url=$(eval curl -s -I "${SYW_API}"data"${language}" | grep 'Location:' | sed 's/Location: //g' | sed 's/\r//g')
 	if [[ "$update_url" = *google* ]]; then
 		update_url=$(echo "${update_url}" | cut -d '/' -f 6)
 	fi
 	if [[ "${language}" == VF ]]; then
-		update_url_fall=$(eval curl -s -I "${SYW_API}"data"${language}"2 | grep 'Location:' | sed 's/Location: //g')
+		update_url_fall=$(eval curl -s -I "${SYW_API}"data"${language}"3 | grep 'Location:' | sed 's/Location: //g' | sed 's/\r//g')
 		update_file_name=${update_url_fall##*/}
 # shellcheck disable=SC2034
 		FF7SYW_PACKAGE_2="${update_file_name} ${update_checksum} ${update_url} ${update_url_fall}"
@@ -580,6 +568,7 @@ check_free_space
 check_FF7_orig_installed
 check_proton_installed
 create_simlink_FF7Orig
+get_latest_FF7SYW_version_info
 download_prepare_install_FF7SYWexes
 install_fonts
 create_launchers
@@ -588,6 +577,8 @@ if [[ "$SYSTEM_TYPE" == "SteamDeck" ]]; then
 	configure_configurator_button
 fi
 deploy_WA
+#uninstall_FF7SYW
+#uninstall_FF7SYW_extra
 steam_restart
 clean_install
 if ! check_ff7syw_install_version ; then
