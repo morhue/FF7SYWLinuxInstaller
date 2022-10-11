@@ -13,11 +13,12 @@
 
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
-exec 1>FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
+exec 1>"$HOME"/FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
 set -x
 
 #Check if run on a terminal with display enabled.
 if [[ -z "$DISPLAY" ]] || [[ ! -t 0 ]]; then
+	echo "Must be run on a terminal with a display"
 	exit 1
 fi
 
@@ -28,6 +29,7 @@ language="VF"
 FREE_DISK_SPACE_NEEDED=65000000000
 
 #Environment variables
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 SYW_API='http://yatoshicom.free.fr/ff7sywv5.php?id='
 PROTON_VERSION="7.0"
 STEAMAPPS="$HOME/.local/share/Steam/steamapps"
@@ -50,7 +52,6 @@ if [[ -f "$HOME"/.config/plasma-localerc ]]; then
 	cat "$HOME"/.config/plasma-localerc
 fi
 
-
 #Functions
 
 #Display message on stdout terminal with echo -e
@@ -71,6 +72,14 @@ pushd () {
 #Quiet popd on stdout
 popd () {
 	command popd > /dev/null
+}
+
+#Check if the script have all the deps
+check_script_complete () {
+if [[ ! -d "$SCRIPT_DIR"/resources ]]; then
+	display_msg "Merci de télécharger tout le dossier resources, son contenu et le mettre dans le même dossier que le script d'install"
+	exit 1
+fi
 }
 
 #Check if the system is connected to Internet
@@ -482,7 +491,7 @@ configure_configurator_button () {
 	users_id=$(ls "$STEAMAPPS"/common/Steam\ Controller\ Configs/)
 	for id in ${users_id} ; do
 		mkdir -p "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator
-		cp ./resources/controller_neptune.vdf "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator/.
+		cp "$SCRIPT_DIR"/resources/controller_neptune.vdf "$STEAMAPPS"/common/Steam\ Controller\ Configs/"$id"/config/ff7syw_configurator/.
 	done
 }
 
@@ -552,7 +561,7 @@ echo -e "Deploy WA"
 		for files_sephix in "Complètes.txt" "Conseillées.txt"; do
 			if [[ ! -f "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/mods/SYWsp/aa/"$files_sephix" ]]; then
 				if [[ ! -f /tmp/$files_sephix ]]; then
-					unzip -o ./resources/WA/aa/bug7.zip -d /tmp/.
+					unzip -o "$SCRIPT_DIR"/resources/WA/aa/bug7.zip -d /tmp/.
 				fi
 				cp /tmp/"$files_sephix" "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/mods/SYWsp/aa/.
 				rm -f /tmp/"$files_sephix"
@@ -564,6 +573,7 @@ echo -e "WA done"
 }
 
 #Main
+check_script_complete
 display_header
 check_free_space
 check_FF7_orig_installed
