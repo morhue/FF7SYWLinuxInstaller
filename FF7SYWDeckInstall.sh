@@ -11,16 +11,16 @@
 #Uncomment to force install if you think you have enough free space on disk.
 #NO_CHECK_FREE_SPACE=1
 
-exec 3>&1 4>&2
-trap 'exec 2>&4 1>&3' 0 1 2 3
-exec 1>"$HOME"/FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
-set -x
-
 #Check if run on a terminal with display enabled.
 if [[ -z "$DISPLAY" ]] || [[ ! -t 0 ]]; then
 	echo "Must be run on a terminal with a display"
 	exit 1
 fi
+
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3
+exec 1>"$(dirname "$(readlink -f "$0")")"/FF7SYWinst_"$(date '+%Y-%m-%d-%H_%M_%S')".log 2>&1
+set -x
 
 #DEBUG
 language="VF"
@@ -276,7 +276,7 @@ download_on_gdrive () {
 	display_msg "Téléchargement de $file_name dans $download_path à partir de GoogleDrive:"
 	pushd "$download_path"
 	data_html=$(curl -c /tmp/cookie.txt -s -L "https://drive.google.com/uc?export=download&id=${file_g_id}")
-	display_cmd curl -Lb /tmp/cookie.txt "https://drive.google.com/uc?export=download&$(echo "${data_html}"|grep -Po '(confirm=[a-zA-Z0-9\-_]+)')&id=${file_g_id}" -o "${file_name}" && rm -rf /tmp/cookies.txt
+	display_cmd curl -Lb /tmp/cookie.txt "https://drive.google.com/uc?export=download&$(echo "${data_html}"|grep -Po '(confirm=[a-zA-Z0-9\-_]+)')&id=${file_g_id}" -o "${file_name}" && rm -f /tmp/cookie.txt
 	popd
 }
 
