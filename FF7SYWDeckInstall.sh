@@ -458,17 +458,46 @@ create_launchers () {
 #! /bin/bash
 STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
 STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
-$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW_Configuration.exe
+$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW_Configuration.exe &
 EOF
 
 	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW
 #! /bin/bash
 STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
 STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
-$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW.exe
+$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW.exe &
 EOF
-	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW_configurator
-	chmod +x "$FF7SYW_COMPATDATA"/FF7SYW
+
+#Kill trainer and ff7.exe in defunct when exiting in the game
+	for launchers in FF7SYW_configurator FF7SYW; do
+#shellcheck disable=SC2016,SC2028
+	echo '
+sleep 30
+while true; do
+        pid_config=$(pidof "C:\Games\FF7SYWV5\FF7SYWV5\FF7_SYW_Configuration.exe")
+        if [[ -z "$pid_trainer" ]]; then
+                pid_trainer=$(pidof "C:\Games\FF7SYWV5\FF7SYWV5\FF7_SYW\addfiles\trainer\FF7SYWV5minitrainer.exe")
+        fi
+        if [[ -z "$pid_ff7" ]]; then
+                pid_ff7=$(pidof "C:\Games\FF7SYWV5\FF7SYWV5\FF7_SYW\ff7.exe")
+        fi
+        if [[ -z "$pid_config" ]]; then
+                exit 0
+        fi
+        unset pid_config
+        if [[ -n "$pid_ff7" ]]; then
+                is_Z="$(cat /proc/$pid_ff7/status | grep "State:")"
+                if [[ "$is_Z" =~ "Z" ]]; then
+                        kill $pid_trainer
+                        sleep 2
+                        kill $pid_ff7
+                        break
+                fi
+        fi
+        sleep 10
+done' > "$FF7SYW_COMPATDATA"/"$launchers"
+	chmod +x "$FF7SYW_COMPATDATA"/"$launchers"
+done
 }
 
 #Declare launchers in Steam as non-steam-games
