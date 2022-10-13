@@ -20,6 +20,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-          FF7SYWDeckInstall.desktop
-          FF7SYWDeckInstall.sh
-          resources
+            FF7SYWDeckInstall.desktop
+            FF7SYWDeckInstall.sh
+            resources
