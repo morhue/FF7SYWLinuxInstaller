@@ -1,5 +1,5 @@
 # FF7SYWLinuxInstaller
-Version: v0.2
+Version: v0.2.1
 
 
 

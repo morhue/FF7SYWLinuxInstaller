@@ -340,7 +340,7 @@ install_exe_with_proton () {
 		pushd unziped
 	fi
 	display_msg "\nLancement de l'éxécutable $file_name"
-	STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
+	LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
 	STEAM_COMPAT_DATA_PATH="$FF7SYW_COMPATDATA"/. \
 	"$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$file_name"
 	if [[ -n "$is_ziped" ]]; then
@@ -495,7 +495,7 @@ while true; do
                 fi
         fi
         sleep 10
-done' > "$FF7SYW_COMPATDATA"/"$launchers"
+done' >> "$FF7SYW_COMPATDATA"/"$launchers"
 	chmod +x "$FF7SYW_COMPATDATA"/"$launchers"
 done
 }
