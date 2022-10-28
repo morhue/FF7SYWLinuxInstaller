@@ -34,9 +34,9 @@ SYW_API='http://yatoshicom.free.fr/ff7sywv5.php?id='
 PROTON_VERSION="7.0"
 STEAMAPPS="$HOME/.local/share/Steam/steamapps"
 FF7SYW_COMPATDATA="$STEAMAPPS/compatdata/FF7SYW"
-FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYWV5"
 FF7SYW_FONTS="$FF7SYW_COMPATDATA/pfx/drive_c/windows/Fonts"
-
+#Used for VF, overwritten during simlink creation for VI
+FF7SYW_DIR="$FF7SYW_COMPATDATA/pfx/drive_c/Games/FF7SYWV5"
 
 #System type check and configuration
 #System type
@@ -243,8 +243,12 @@ create_dir_simlink_FF7SYW () {
         local symlink
 	symlink="$HOME/FF7SYW"
         display_msg "Création du répertoire d'installation"
-	if [[ ! -d "$FF7SYW_DIR" ]]; then
-		mkdir -p "$FF7SYW_DIR"
+	if [[ "$language" = "VF" ]]; then
+		if [[ ! -d "$FF7SYW_DIR" ]]; then
+			mkdir -p "$FF7SYW_DIR"
+		fi
+	else
+		FF7SYW_DIR="$STEAMAPPS/common/FINAL FANTASY VII"
 	fi
 	display_msg "Création d'un lien symbolique vers le répertoire d'installation"
 	if [[ ! -L "$symlink" ]]; then
@@ -503,13 +507,17 @@ done
 #Declare launchers in Steam as non-steam-games
 #$1 is absolute path of the file
 add_to_steam () {
-	display_msg "Ajout du configurateur et du lanceur dans Steam"
-	steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW_configurator
-	sleep 10
-	echo -e "\n"
-	steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW
-	sleep 10
-	echo -e "\n"
+	if [[ "$SYSTEM_TYPE" = "SteamDeck" ]]; then
+		display_msg "Ajout du configurateur et du lanceur dans Steam"
+		steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW_configurator
+		sleep 10
+		echo -e "\n"
+		steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW
+		sleep 10
+		echo -e "\n"
+	else
+		display_msg "Merci d'ajouter" "$FF7SYW_COMPATDATA"/FF7SYW_configurator "et" "$FF7SYW_COMPATDATA"/FF7SYW "manuellement dans Steam\n"
+	fi
 }
 
 #Copy a file to configure button for the configurator of FF7SYW to use right trackpad for all users
