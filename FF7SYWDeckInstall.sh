@@ -187,6 +187,10 @@ check_proton_installed () {
 
 #Display a message when launching the script for the user
 display_header () {
+	display_cmd "clear"
+	display_cmd cat "$SCRIPT_DIR"/resources/images/logo_b
+	sleep 5
+	display_cmd "clear"
 	display_msg "\nFF7SYWLinuxInstaller pour SteamDeck\n"
 	display_msg "Ce script va installer Final Fantasy VII Satsuki Yatoshi sur votre SteamDeck"
 	display_msg "La version qui sera installée sera la $FF7SYW_target_version\n"

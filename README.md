@@ -40,7 +40,8 @@ Bon jeu à vous !
 
 
 Auteur: Morhue (morhue@gmail.com)  
-Test/débug/améliorations : Joan31/Samba   
+Test/débug/améliorations : Joan31/Samba  
+Logo: Cawa  
 Url Forum: https://ff7.fr/forum/index.php?page=post&ids=475262  
 Url du pack FF7SYW: https://ff7.fr/forum/index.php?page=post&ids=462605  
 Auteur du pack FF7SYW : Satsuki Yatoshi
