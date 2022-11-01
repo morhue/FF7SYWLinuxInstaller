@@ -95,6 +95,10 @@ fi
 check_ff7syw_install_version () {
 	if [[ -f "$FF7SYW_DIR"/FF7SYWV5/version.vrs ]]; then
 		CURRENT_VERSION=$(cat "$FF7SYW_DIR"/FF7SYWV5/version.vrs)
+		language="VF"
+	elif [[ -f "$STEAMAPPS"/common/'FINAL FANTASY VII'/sywvsv ]]; then
+		CURRENT_VERSION=$(cat "$STEAMAPPS"/common/'FINAL FANTASY VII'/sywvsv)
+		language="VI"
 	else
 		CURRENT_VERSION=""
 		return 1
@@ -245,18 +249,30 @@ create_simlink_FF7Orig () {
 #It help the user to target the directory used by Proton to store the PACK and do maintenance or install other mods.
 create_dir_simlink_FF7SYW () {
         local symlink
+	local dir_target
 	symlink="$HOME/FF7SYW"
         display_msg "Création du répertoire d'installation"
-	if [[ "$language" = "VF" ]]; then
-		if [[ ! -d "$FF7SYW_DIR" ]]; then
-			mkdir -p "$FF7SYW_DIR"
+	if [[ ! -d "$FF7SYW_DIR" ]]; then
+                        mkdir -p "$FF7SYW_DIR"
+	fi
+	if [[ "$language" == "VI" ]]; then
+		rm -rf "$FF7SYW_DIR"
+		if [[ ! -L "$FF7SYW_DIR" ]]; then
+			ln -s "$STEAMAPPS"/common/FINAL\ FANTASY\ VII "$FF7SYW_DIR"
 		fi
-	else
-		FF7SYW_DIR="$STEAMAPPS/common/FINAL FANTASY VII"
+		if [[ ! -L "$FF7SYW_DIR" ]]; then
+			display_msg "Problème dans la création du lien symbolique"
+                exit 1
+		fi
 	fi
 	display_msg "Création d'un lien symbolique vers le répertoire d'installation"
 	if [[ ! -L "$symlink" ]]; then
-		ln -s "$FF7SYW_DIR" "$symlink"
+		if [[ "$language" == "VF" ]]; then
+			dir_target="$FF7SYW_DIR"
+		else
+			dir_target="$STEAMAPPS"/common/FINAL\ FANTASY\ VII
+		fi
+		ln -s "$dir_target" "$symlink"
 	fi
 	if [[ -d "$FF7SYW_DIR" ]] && [[ -L "$symlink" ]]; then
 		ls_symlink=$(ls -l "$symlink")
@@ -299,7 +315,7 @@ download_file () {
 	url="$2"
 	download_path="$3"
 
-	display_msg "Téléchargement de $file_name dans $download_path à partir d'un serveur de substitution:"
+	display_msg "Téléchargement de $file_name dans $download_path."
 	pushd "$download_path"
 	display_cmd curl -L "${url}" -o "${file_name}"
 	popd
@@ -330,9 +346,25 @@ checksum_package_md5 () {
 	popd
 }
 
+#Exectute a windows executable using Proton
+#$@ is the executable and the parameters
+exe_proton () {
+	local proton_pid
+	LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
+        STEAM_COMPAT_DATA_PATH="$FF7SYW_COMPATDATA"/. \
+        "$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$@"
+	sleep 2
+	proton_pid=$(pidof "$STEAMAPPS/common/Proton $PROTON_VERSION/dist/bin/wineserver")
+	set +x
+	while [[ -f /proc/"$proton_pid"/status ]]; do
+		sleep 1
+	done
+	set -x
+}
+
 #Install the package using Proton. If the exe is embedded in a Zip, it unzip it.
 #$1 is the MS_Windows executable or zip to install
-install_exe_with_proton () {
+install_package_with_proton () {
 	local file_name
 	local is_ziped
 
@@ -348,9 +380,7 @@ install_exe_with_proton () {
 		pushd unziped
 	fi
 	display_msg "\nLancement de l'éxécutable $file_name"
-	LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAMAPPS"/../ \
-	STEAM_COMPAT_DATA_PATH="$FF7SYW_COMPATDATA"/. \
-	"$STEAMAPPS"/common/Proton\ "$PROTON_VERSION"/proton run "$file_name"
+	exe_proton "$file_name"
 	if [[ -n "$is_ziped" ]]; then
 		popd
 		rm -rf unziped
@@ -442,85 +472,93 @@ download_prepare_install_FF7SYWexes () {
 	display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
 	sleep 60
 	for f in ${file2install}; do 
-		install_exe_with_proton "${f}"
+		install_package_with_proton "${f}"
 	done
 }
 
-#Symlinks fonts from FF7SYW launcher in wine fonts directory.
+#Symlinks fonts from FF7SYW dir in wine fonts directory.
 install_fonts () {
-	display_msg "Installation des polices du Lanceur de FF7SYW"
-	ln -s "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/addfiles/polices/Roboto-Black.ttf "$FF7SYW_FONTS"
-	ln -s "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/addfiles/polices/Roboto-Regular.ttf "$FF7SYW_FONTS"
-	if [[ -f "$FF7SYW_FONTS/Roboto-Regular.ttf" ]] \
-	&& [[ -f "$FF7SYW_FONTS/Roboto-Black.ttf" ]]; then
-		display_msg "Les polices sont installées\n"
-	else
-		display_msg "Problème lors de l'installation des polices"
+	if [[ "$language" == VF ]]; then
+		display_msg "Installation des polices du Lanceur de FF7SYW"
+		ln -s "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/addfiles/polices/Roboto-Black.ttf "$FF7SYW_FONTS"
+		ln -s "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/addfiles/polices/Roboto-Regular.ttf "$FF7SYW_FONTS"
+		if [[ -f "$FF7SYW_FONTS/Roboto-Regular.ttf" ]] \
+		&& [[ -f "$FF7SYW_FONTS/Roboto-Black.ttf" ]]; then
+			display_msg "Les polices sont installées\n"
+		else
+			display_msg "Problème lors de l'installation des polices"
+		fi
 	fi
 }
 
 #Create sh files to launch configurator and the game accross Steam
 create_launchers () {
-	display_msg "Creations des wrappers des éxécutables"
-	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW_configurator
-#! /bin/bash
-STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
-STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
-$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW_Configuration.exe &
-EOF
-
-	cat << EOF > "$FF7SYW_COMPATDATA"/FF7SYW
-#! /bin/bash
-STEAM_COMPAT_CLIENT_INSTALL_PATH=$STEAMAPPS/.. \
-STEAM_COMPAT_DATA_PATH=$FF7SYW_COMPATDATA/. \
-$STEAMAPPS/common/Proton\ ${PROTON_VERSION}/proton run $FF7SYW_DIR/FF7SYWV5/FF7_SYW.exe &
-EOF
-
-#Kill trainer and ff7.exe in defunct when exiting in the game
-	for launchers in FF7SYW_configurator FF7SYW; do
-#shellcheck disable=SC2016,SC2028
-	echo '
-sleep 30
-while true; do
-        pid_config=$(pidof "C:\Games\FF7SYWV5\FF7SYWV5\FF7_SYW_Configuration.exe")
-        if [[ -z "$pid_trainer" ]]; then
-                pid_trainer=$(pidof "C:\Games\FF7SYWV5\FF7SYWV5\FF7_SYW\addfiles\trainer\FF7SYWV5minitrainer.exe")
-        fi
-        if [[ -z "$pid_ff7" ]]; then
-                pid_ff7=$(pidof "C:\Games\FF7SYWV5\FF7SYWV5\FF7_SYW\ff7.exe")
-        fi
-        if [[ -z "$pid_config" ]]; then
-                exit 0
-        fi
-        unset pid_config
-        if [[ -n "$pid_ff7" ]]; then
-                is_Z="$(cat /proc/$pid_ff7/status | grep "State:")"
-                if [[ "$is_Z" =~ "Z" ]]; then
-                        kill $pid_trainer
-                        sleep 2
-                        kill $pid_ff7
-                        break
-                fi
-        fi
-        sleep 10
-done' >> "$FF7SYW_COMPATDATA"/"$launchers"
-	chmod +x "$FF7SYW_COMPATDATA"/"$launchers"
-done
+	local launcher_name
+	local launcher_dir
+	display_msg "\nCréation des lanceurs."
+	for launcher_name in FF7SYW_configurator FF7SYW; do
+		if [[ "$language" == "VF" ]]; then
+			launcher_dir="$FF7SYW_COMPATDATA"
+			if [[ "$launcher_name" == "FF7SYW_configurator" ]]; then
+				target_exe="FF7SYWV5/FF7_SYW_Configuration.exe"
+			elif [[ "$launcher_name" == "FF7SYW" ]]; then
+				target_exe="FF7SYWV5/FF7_SYW.exe"
+			else
+				exit 1
+			fi
+			ff7_exe="ff7.exe"
+		else
+			local ff7_lang
+			launcher_dir="$STEAMAPPS"/common/'FINAL FANTASY VII'
+			ff7_lang="$(basename "$(ls "$FF7SYW_DIR"/ff7_*.exe)")"
+			case "$ff7_lang" in
+				"ff7_fr.exe") ff7_exe="ff7.f.exe"
+					;;
+				"ff7_en.exe") ff7_exe="ff7.e.exe"
+					;;
+				"ff7_de.exe") ff7_exe="ff7.g.exe"
+					;;
+				"ff7_es.exe") ff7_exe="ff7.s.exe"
+					;;
+			esac
+			if [[ "$launcher_name" == "FF7SYW_configurator" ]]; then
+				target_exe="SYWV5controlPanel.exe"
+			elif [[ "$launcher_name" == "FF7SYW" ]]; then
+				target_exe="$ff7_exe"
+			else
+				exit 1
+			fi
+		fi
+		cp "$SCRIPT_DIR"/resources/launchers/launcher_"$language" /tmp/launcher
+		sed -i -e "s|STEAMAPPS|$STEAMAPPS|g" \
+			-e "s|FF7SYW_COMPATDATA|$FF7SYW_COMPATDATA|g" \
+			-e "s|PROTON_VERSION|$PROTON_VERSION|" \
+			-e "s|TARGET_EXE|$target_exe|" \
+			-e "s|FF7_EXE|$ff7_exe|" /tmp/launcher
+		chmod +x /tmp/launcher
+		mv /tmp/launcher "$launcher_dir"/"$launcher_name"
+	done
 }
 
 #Declare launchers in Steam as non-steam-games
 #$1 is absolute path of the file
 add_to_steam () {
+	local launcher_dir
+	local launcher_name
+	if [[ "$language" == "VF" ]]; then
+		launcher_dir="$FF7SYW_COMPATDATA"
+	else
+		launcher_dir="$STEAMAPPS"/common/'FINAL FANTASY VII'
+	fi
 	if [[ "$SYSTEM_TYPE" = "SteamDeck" ]]; then
 		display_msg "Ajout du configurateur et du lanceur dans Steam"
-		steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW_configurator
-		sleep 10
-		echo -e "\n"
-		steamos-add-to-steam "$FF7SYW_COMPATDATA"/FF7SYW
-		sleep 10
-		echo -e "\n"
+		for launcher_name in FF7SYW_configurator FF7SYW; do
+			steamos-add-to-steam "$launcher_dir"/"$launcher_name"
+			sleep 15
+			echo -e "\n"
+		done
 	else
-		display_msg "Merci d'ajouter" "$FF7SYW_COMPATDATA"/FF7SYW_configurator "et" "$FF7SYW_COMPATDATA"/FF7SYW "manuellement dans Steam\n"
+		display_msg "Merci d'ajouter" "$launcher_dir"/FF7SYW_configurator "et" "$launcher_dir"/FF7SYW "manuellement dans Steam\n"
 	fi
 }
 
@@ -554,7 +592,7 @@ clean_install () {
 #Used when Upgrade to new version
 uninstall_FF7SYW () {
 	display_msg "Désinstallation de FF7SYW"
-	if [[ -d "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/save ]]; then
+	if [[ -d "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/save || -d "$STEAMAPPS"/common/'FINAL FANTASY VII'/save ]]; then
 		display_msg "Copie du repertoire de sauvegarde dans le repertoire utilisateur"
 		if [[ ! -d "$HOME"/FF7SYW_save ]]; then
 			mkdir "$HOME"/FF7SYW_save
@@ -562,12 +600,20 @@ uninstall_FF7SYW () {
 		if [[ -d "$HOME"/FF7SYW_save/save ]]; then
 			mv "$HOME"/FF7SYW_save/save "$HOME"/FF7SYW_save/save_old_"$(date '+%Y-%m-%d-%H_%M_%S')"
 		fi
-		cp -rv "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/save "$HOME"/FF7SYW_save/.
+		if [[ "$language" == "VF" ]]; then
+			cp -rv "$FF7SYW_DIR"/FF7SYWV5/FF7_SYW/save "$HOME"/FF7SYW_save/.
+		else
+			cp -rv "$STEAMAPPS"/common/'FINAL FANTASY VII'/save "$HOME"/FF7SYW_save/.
+		fi
 		if [[ ! -d "$HOME"/FF7SYW_save/save ]]; then
 			display_msg "La copie des sauvegarde a échouée. Abandon de la désinstallation!\n"
 			exit 1
 		fi
 		display_msg "Le repertoire de sauvegarde a été copié dans" "$HOME"/FF7SYW_save/
+	fi
+	if [[ "$language" == "VI" ]]; then
+		rm "$STEAMAPPS"/common/'FINAL FANTASY VII'/{FF7SYW_configurator,FF7SYW}
+		exe_proton "$STEAMAPPS/common/FINAL FANTASY VII/SYWV5u.exe"
 	fi
 	unlink "$HOME"/FF7SYW
 	rm -rf "$FF7SYW_COMPATDATA"
@@ -577,6 +623,11 @@ uninstall_FF7SYW () {
 	else
 		display_msg "Problème lors de la désinstallation de FF7SYW. Abandon!\n"
 		exit 1
+	fi
+	if ! check_ff7syw_install_version ; then
+		display_msg "FF7SYW est bien désinstallé."
+	else
+		display_msg "FF7SYW" "$CURRENT_VERSION" "est toujours installé sur votre système"
 	fi
 }
 
