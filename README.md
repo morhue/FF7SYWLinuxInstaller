@@ -1,5 +1,5 @@
 # FF7SYWLinuxInstaller
-Version: v0.2.1
+Version: v0.2.2
 
 
 
@@ -9,8 +9,11 @@ Ce pack et son script vont nécéssiter environ 60Go pour l'installation.
 
 Pour lancer l'installation sur votre SteamDeck:  
 	-Bouton Steam -> Marche/Arrêt -> Basculer sur le bureau  
-	-Téléchargez le zip sur cette page avec le navigateur Firefox/Chrome et dézippez-le ou clonez le projet avec  
-	"git clone https://github.com/morhue/FF7SYWLinuxInstaller.git" avec le Terminal (Konsole)"  
+	-Téléchargez le zip de la dernière release avec le navigateur Firefox/Chrome et dézippez-le:  
+	https://github.com/morhue/FF7SYWLinuxInstaller/releases/tag/v0.2.2  
+	Les plus aventureux peuvent cloner le projet sur la version en devellopement avec:  
+	"git clone https://github.com/morhue/FF7SYWLinuxInstaller.git" avec le Terminal (Konsole).  
+	Certaines fonctionnalitées peuvent être cassées ou des bugs peuvent se produire avec cette version.  
 	-Lancez l'installation en double-cliquant sur l'icône "FF7SYWDeckInstall" et choisissez "execute"  
 	ou sur un Terminal avec "./FF7SYWDeckInstall.sh"  
 	-Suivre les instructions sur le Terminal.  
@@ -24,7 +27,7 @@ Problèmes connus:
 	-le téléchargement ne s'affiche pas sur le Terminal: https://github.com/morhue/FF7SYWLinuxInstaller/issues/2  
 
 
-Merci de reporter les autres problèmes dans https://github.com/morhue/FF7SYWLinuxInstaller/issues (en Anglais) ou par mail sur https://ff7.fr/forum/index.php?page=post&ids=475262.
+Merci de reporter les autres problèmes dans https://github.com/morhue/FF7SYWLinuxInstaller/issues (en Anglais) ou sur le forum ff7.fr: https://ff7.fr/forum/index.php?page=post&ids=475262.
 
 
 Pour les prochaines versions, il est prévu:  

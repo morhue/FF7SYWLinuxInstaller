@@ -453,6 +453,9 @@ download_prepare_install_FF7SYWexes () {
 	else
 		mkdir -p "$FF7SYW_COMPATDATA"
 	fi
+	if [[ "$language" == "VF" ]]; then
+		mkdir -p "$FF7SYW_COMPATDATA"/pfx/drive_c/Games
+	fi
 	create_dir_simlink_FF7SYW
 	display_msg "Lancement des installeurs FF7SYW.\n\n"
 	display_msg "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
