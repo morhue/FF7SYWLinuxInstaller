@@ -82,6 +82,203 @@ if [[ ! -d "$SCRIPT_DIR"/resources ]]; then
 fi
 }
 
+#Check which dialog (UI) toolbox is installed on the System.
+#The list is different if DISPLAY is set or not (ncurse type CLI or GUI)
+check_dialog () {
+local dialog
+local test_dialog
+if [[ -n $DISPLAY ]]; then
+	test_dialog="zenity kdialog Xdialog whiptail dialog"
+else
+	test_dialog="whiptail dialog"
+fi
+for dialog in $test_dialog ; do
+	if [[ -n "$DIALOG" ]]; then #When DIALOG is forced to a value
+		if [[ "$DIALOG" == "$dialog" ]]; then #When DIALOG is forced to a value
+			if command -v "$DIALOG"; then
+				display_msg "Force dialog to $DIALOG : OK"
+				break
+			else
+				display_msg "You forced $DIALOG but it is not installed on your system"
+			fi
+		fi
+	else
+		if command -v "$dialog"; then
+			DIALOG="$dialog"
+			break
+		fi
+	fi
+done
+if [[ -z "$DIALOG" ]]; then
+	display_msg "No dialog sw installed on your system. Please install one of this list: zenity kdialog Xdialog whiptail dialog"
+	exit 1
+fi
+}
+
+#Create a dialog text box to display a message to the user.
+#$1 is the title, $2 is the name of the variable which contain the text, $3 is height of the dialog box and $4 the width
+text_dialog () {
+local title
+local name
+local text
+local height
+local width
+local size
+title="$1"
+var_text="$2"
+height="$3"
+width="$4"
+
+rm -f "/tmp/dialog_text.txt"
+if [[ -f /tmp/dialog_text.txt ]]; then
+	display_msg "Temp file still present. Please remove /tmp/dialog_text.txt or restart your machine"
+	exit 1
+fi
+
+echo "${!var_text}" > /tmp/dialog_text.txt
+name="--textbox"
+text="/tmp/dialog_text.txt"
+size="$height $width"
+
+case "$DIALOG" in
+		zenity)
+			name="--text-info"
+			text="--filename=/tmp/dialog_text.txt"
+			width=$((width*7))
+			height=$((height*14))
+			size="--width=$width --height=$height"
+			;;
+		kdialog)
+			size="$width $height"
+			;;
+esac
+$DIALOG --title "$title" "$name" "$text" "$size" || (display_msg "Cancel by user or Error. Exit" ; rm -f "/tmp/dialog_text.txt"; exit 1 )
+rm -f "/tmp/dialog_text.txt"
+}
+
+#Create a dialog question box to ask question to the user.
+#$1 is the title, $2 is the question, $3 replace the Yes/OK button, $4 replace the No/Cancel button
+#Return 0 if OK/Yes ; return 1 if Cancel/No
+question_dialog () {
+local title
+local name
+local text
+local ok_lbl
+local no_lbl
+local status
+title="$1"
+text="$2"
+ok_lbl="$3"
+no_lbl="$4"
+
+name="--yesno"
+text="$text 0 0"
+case "$DIALOG" in
+		zenity)
+			name="--question"
+			text="--text=$text"
+			ok_lbl="--ok-label=$ok_lbl"
+			no_lbl="--cancel-label=$no_lbl"
+			;;
+		kdialog)
+			ok_lbl="--yes-label $ok_lbl"
+			no_lbl="--no-label $no_lbl"
+			;;
+		Xdialog)
+			ok_lbl="--ok-label $ok_lbl"
+                        no_lbl="--cancel-label $no_lbl"
+			;;
+		whiptail)
+			ok_lbl="--yes-button $ok_lbl"
+                        no_lbl="--no-button $no_lbl"
+			;;
+		dialog)
+			ok_lbl="--yes-label $ok_lbl"
+                        no_lbl="--no-label $no_lbl"
+			;;
+esac
+
+status=$($DIALOG --title "$title" "$ok_lbl" "$no_lbl" "$name" "$text") || (display_msg "Cancel by user or Error. Exit" ; exit 1 )
+return "$status"
+}
+
+#Create a dialog box with list of radio button.
+#$1 is the title, $2 is the text, $3 is a list of inputs to display
+#Return a value number which correspond of the terms nb in the list
+radiolist_dialog () {
+local title
+local name
+local text
+local list_inputs
+local list_height
+local payload
+local input
+local tag
+
+title="$1"
+text="$2"
+list_inputs="$3"
+
+rm -f "/tmp/dialog_radiolist"
+if [[ -f /tmp/dialog_radiolist ]]; then
+        display_msg "Temp file still present. Please remove /tmp/dialog_radiolist or restart your machine"
+        exit 1
+fi
+
+name="--radiolist"
+list_height=$(echo "$list_inputs" | wc -w)
+tag=1
+payload=""
+case "$DIALOG" in
+                zenity)
+                        name="--list $name"
+                        text="--text=$text"
+			payload="--hide-header --hide-column=2 --column= --column= --column="
+			for input in $list_inputs ; do
+				if [[ "$tag" == 1 ]]; then
+					payload="$payload TRUE $tag $input"
+				else
+					payload="$payload FALSE $tag $input"
+				fi
+				tag=$((tag+1))
+			done
+			payload="$payload 1>/tmp/dialog_radiolist 2>/dev/null"
+			;;
+		kdialog)
+			for input in $list_inputs ; do
+				if [[ "$tag" == 1 ]]; then
+					payload="$payload $tag $input ON"
+				else
+					payload="$payload $tag $input OFF"
+				fi
+				tag=$((tag+1))
+			done
+			payload="$payload 1>/tmp/dialog_radiolist 2>/dev/null"
+			;;
+		Xdialog|whiptail|dialog)
+			if [[ "$DIALOG" == "whiptail" ]]; then
+				name="--notags $name"
+			else
+				name="--no-tags $name"
+			fi
+			payload="0 0 $list_height"
+			for input in $list_inputs ; do
+				if [[ "$tag" == 1 ]]; then
+					payload="$payload $tag $input ON"
+				else
+					payload="$payload $tag $input OFF"
+				fi
+				tag=$((tag+1))
+			done
+			payload="$payload 2>/tmp/dialog_radiolist"
+			;;
+esac
+$DIALOG --title "$title" "$name" "$text" "$payload" || (display_msg "Cancel by user or Error. Exit" ; rm -f "/tmp/dialog_radiolist"; exit 1 )
+response=$(tail -n1 /tmp/dialog_radiolist)
+rm -f /tmp/dialog_radiolist
+return "$response"
+}
+
 #Check if the system is connected to Internet
 check_connectivity () {
 if ! ping -c 1 8.8.8.8 ; then
