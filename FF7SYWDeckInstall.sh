@@ -82,6 +82,61 @@ if [[ ! -d "$SCRIPT_DIR"/resources ]]; then
 fi
 }
 
+#Check which dialog (UI) toolbox is installed on the System.
+#The list is different if DISPLAY is set or not (ncurse type CLI or GUI)
+check_dialog () {
+local dialog
+if [[ -n $DISPLAY ]]; then
+	test_dialog="zenity kdialog xdialog whiptail dialog"
+else
+	test_dialog="whiptail dialog"
+fi
+for dialog in $test_dialog ; do
+	if command -v "$dialog"; then
+		DIALOG="$dialog"
+		break
+	fi
+done
+if [[ -z "$DIALOG" ]]; then
+	display_msg "No dialog sw installed on your system. Please install one of this list: zenity kdialog xdialog whiptail dialog"
+	exit 1
+fi
+}
+
+#Create dialog box to interface with user.
+#$1 is box_type (yesno, text,etc), $2 is the title of the dialog, $3 is the command and the parameters, $4 is the height (*14 for zenity), $5 is the width (*7 for zenity)
+create_dialog () {
+local box_type
+local title
+local payload
+local height
+local width
+box_type="$1"
+title="$2"
+payload="$3"
+height="$4"
+width="$5"
+
+if [[ "$DIALOG" != "zenity" ]]; then
+	height=$((height/14))
+	width=$((width/7))
+	case "$box_type" in
+		"--text-info")
+			box_type="--textbox"
+			;;
+		"--question")
+			box_type="--yesno"
+			;;
+		"--list --radiolist")
+			box_type="--radiolist"
+			;;
+	esac
+	$DIALOG --title "${title}" "${box_type}" "${payload}" "${height}" "${width}"
+else
+	zenity --title "${title}" "${box_type}" "${payload}" --width="${width}" --height="${height}"
+fi
+}
+
 #Check if the system is connected to Internet
 check_connectivity () {
 if ! ping -c 1 8.8.8.8 ; then
