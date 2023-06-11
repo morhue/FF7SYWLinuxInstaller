@@ -31,7 +31,7 @@ FREE_DISK_SPACE_NEEDED=65000000000
 #Environment variables
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 SYW_API='http://yatoshicom.free.fr/ff7sywv5.php?id='
-PROTON_VERSION="7.0"
+PROTON_VERSION="8.0"
 STEAMAPPS="$HOME/.local/share/Steam/steamapps"
 FF7SYW_COMPATDATA="$STEAMAPPS/compatdata/FF7SYW"
 FF7SYW_FONTS="$FF7SYW_COMPATDATA/pfx/drive_c/windows/Fonts"
@@ -180,8 +180,7 @@ check_FF7_orig_installed () {
 #https://github.com/ValveSoftware/Proton
 check_proton_installed () {
         display_msg "\nVérification si Proton ${PROTON_VERSION} est installé:"
-	if [[ -f "$STEAMAPPS"/appmanifest_1887720.acf ]] \
-	&& [[ -f "$STEAMAPPS"/common/Proton\ ${PROTON_VERSION}/proton ]] ; then
+	if [[ -f "$STEAMAPPS"/common/Proton\ ${PROTON_VERSION}/proton ]] ; then
 		display_msg "Proton ${PROTON_VERSION} est bien installé.\n"
 	else
 		display_msg "Proton n'est pas installé. Merci d'éxecuter FF7 version Steam au moins une fois avant de lancer cet installeur\n"
